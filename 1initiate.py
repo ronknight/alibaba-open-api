@@ -32,10 +32,10 @@ app_secret = os.getenv('APP_SECRET')
 redirect_uri = os.getenv('REDIRECT_URI')  # Your redirect URI
 
 # Construct base URL
-base_url = 'https://oauth.alibaba.com'
+base_url = 'https://openapi-auth.alibaba.com/oauth'
 
 # URL to redirect the user for authorization
-auth_url = f"{base_url}/authorize?response_type=code&client_id={app_key}&redirect_uri={redirect_uri}&State=1212&view=web&sp=ICBU"
+auth_url = f"{base_url}/authorize?response_type=code&redirect_uri={redirect_uri}&client_id={app_key}"
 
 print("Please visit the following URL to authorize the application:")
 print(auth_url)

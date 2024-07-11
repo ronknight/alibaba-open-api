@@ -1,9 +1,9 @@
 import os
 import requests
-from dotenv import load_dotenv
 import hashlib
 import time
 import json
+from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
@@ -13,53 +13,28 @@ APP_KEY = os.getenv('APP_KEY')
 APP_SECRET = os.getenv('APP_SECRET')
 AUTH_CODE = os.getenv('AUTH_CODE')
 
-ALIBABA_SERVER_CALL_ENTRY = "https://eco.taobao.com/router/rest"
+# ALIBABA_SERVER_CALL_ENTRY = "https://openapi-api.alibaba.com/rest"
+ALIBABA_SERVER_CALL_ENTRY = "https://openapi-auth.alibaba.com/oauth"
+
+API_OPERATION = "/auth/token/create"
 LOG_DIR = 'api_logs/'  # Directory to store log files
 
 # Create directory if it does not exist
 os.makedirs(LOG_DIR, exist_ok=True)
 
-# Create a sign
-def create_sign(params, secret):
-    sorted_params = sorted(params.items())
-    basestring = secret + ''.join(f'{k}{v}' for k, v in sorted_params) + secret
-    return hashlib.md5(basestring.encode('utf-8')).hexdigest().upper()
-
-# Prepare the request parameters
-params = {
-    'method': 'taobao.top.auth.token.create',
-    'app_key': APP_KEY,
-    'timestamp': time.strftime("%Y-%m-%d %H:%M:%S"),
-    'format': 'json',
-    'v': '2.0',
-    'sign_method': 'md5',
-    'code': AUTH_CODE
-}
-
-# Generate the sign
-params['sign'] = create_sign(params, APP_SECRET)
-
-# Make the request
-response = requests.get(ALIBABA_SERVER_CALL_ENTRY, params=params)
-
-# Function to log API request
-def log_request(request_params, log_dir):
-    log_file_path = os.path.join(log_dir, "createtoken.log")
+# Function to log API request and response
+def log_request_response(request_params, response_data, url, log_dir):
+    timestamp = time.strftime("%Y%m%d-%H%M%S")
+    log_file_path = os.path.join(log_dir, f"createtoken_{timestamp}.log")
     
     with open(log_file_path, 'a') as log_file:
-        log_file.write(json.dumps(request_params, indent=4) + "\n")
+        log_file.write(f"Request URL: {url}\n")
+        log_file.write("Request Parameters:\n")
+        log_file.write(json.dumps(request_params, indent=4) + "\n\n")
+        log_file.write("Response Data:\n")
+        log_file.write(json.dumps(response_data, indent=4) + "\n")
     
-    print(f"API request logged in {log_file_path}")
-
-# Function to log API response
-def log_response(response_data, log_dir):
-    timestamp = time.strftime("%Y%m%d-%H%M%S")
-    log_file_path = os.path.join(log_dir, f"createtokenresponse_{timestamp}.log")
-    
-    with open(log_file_path, 'w') as log_file:
-        log_file.write(json.dumps(response_data, indent=4))
-    
-    print(f"API response logged in {log_file_path}")
+    print(f"API request and response logged in {log_file_path}")
 
 # Function to update the .env file
 def update_env_file(key, value, env_file_path='.env'):
@@ -80,31 +55,52 @@ def update_env_file(key, value, env_file_path='.env'):
     
     print(f"{key} updated in {env_file_path}")
 
-# Check if the response is successful
-if response.status_code == 200:
-    response_data = response.json()
+# Function to generate the sign parameter
+def generate_sign(params, app_secret):
+    # Sort parameters by key
+    sorted_params = sorted(params.items())
     
-    # Extract access_token from the response
-    try:
-        token_result = response_data['top_auth_token_create_response']['token_result']
-        token_result_dict = json.loads(token_result)
-        access_token = token_result_dict.get('access_token')
-        
-        if access_token:
-            # Update .env file with session_key = access_token
-            update_env_file('SESSION_KEY', access_token)
-        else:
-            print("Access token not found in the response")
+    # Concatenate all key-value pairs
+    sign_string = app_secret
+    for key, value in sorted_params:
+        sign_string += f"{key}{value}"
     
-    except KeyError:
-        print("Invalid response format, access token could not be extracted")
+    # Append app_secret again
+    sign_string += app_secret
     
-    # Log the API request and response
-    log_request(params, LOG_DIR)
-    log_response(response_data, LOG_DIR)
-    
-else:
-    print(f"Failed to retrieve data: {response.status_code}")
-    # Log the API request and response
-    log_request(params, LOG_DIR)
-    log_response(response.text, LOG_DIR)
+    # Calculate MD5 hash
+    sign = hashlib.md5(sign_string.encode('utf-8')).hexdigest().upper()
+    return sign
+
+# Prepare the request parameters
+timestamp = str(int(time.time() * 1000))  # Current time in milliseconds since epoch
+params = {
+    "app_key": APP_KEY,
+    "code": AUTH_CODE,
+    "grant_type": "authorization_code",
+    "sign_method": "md5",
+    "timestamp": timestamp
+}
+
+# Generate the signature
+signature = generate_sign(params, APP_SECRET)
+
+# Add the signature to the parameters
+params["sign"] = signature
+
+# Construct the request URL
+request_url = ALIBABA_SERVER_CALL_ENTRY + API_OPERATION
+
+# Dummy response for demonstration purposes
+response_data = {
+    "access_token": "dummy_access_token"
+}
+
+# Update .env file with the dummy access_token
+update_env_file('SESSION_KEY', response_data["access_token"])
+
+# Log the API request and response
+log_request_response(params, response_data, request_url, LOG_DIR)
+
+# Log the timestamp used for debugging
+print(f"Timestamp used: {timestamp}")
