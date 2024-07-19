@@ -1,2 +1,6 @@
 .env
 *.log
+.env copy
+*.json
+.env MP
+*.txt

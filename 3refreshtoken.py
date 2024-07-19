@@ -29,15 +29,15 @@ def generate_signature(params, secret_key, api_operation):
 # Retrieve parameters from environment
 APP_KEY = os.getenv('APP_KEY')
 APP_SECRET = os.getenv('APP_SECRET')
-AUTH_CODE = os.getenv('AUTH_CODE')
+REFRESH_TOKEN = os.getenv('REFRESH_TOKEN')
 ALIBABA_SERVER_CALL_ENTRY = "https://openapi-api.alibaba.com/rest"
-API_OPERATION = "/auth/token/create"  # Specify your API operation endpoint here
+API_OPERATION = "/auth/token/refresh"  # Specify your API operation endpoint here
 
 # Prepare the request parameters
 timestamp = str(int(time.time() * 1000))  # Replace with your actual timestamp logic if needed
 params = {
     "app_key": APP_KEY,
-    "code": AUTH_CODE,
+    "refresh_token": REFRESH_TOKEN,
     "sign_method": "sha256",
     "timestamp": timestamp
 }
