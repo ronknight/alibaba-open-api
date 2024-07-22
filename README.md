@@ -24,7 +24,7 @@
 
 ---
 
-## Requirements
+## 📋 Requirements
 
 To run this project, you need:
 
@@ -42,7 +42,7 @@ python-dotenv==1.0.1
 
 A full list of dependencies can be found in the `requirements.txt` file.
 
-## Usage
+## 🚀 Usage
 
 1. Clone the repository:
    ```
@@ -70,7 +70,7 @@ A full list of dependencies can be found in the `requirements.txt` file.
    python productlist.py
    ```
 
-## Scripts
+## 📜 Scripts
 
 1. `1initiate.py`: Initiates the OAuth process and obtains the authorization code.
 2. `2createtoken.py`: Creates access and refresh tokens using the authorization code.
@@ -79,12 +79,12 @@ A full list of dependencies can be found in the `requirements.txt` file.
 
 Each script performs a specific function in the API integration process, from authentication to data retrieval.
 
-## Disclaimer
+## ⚠️ Disclaimer
 
 This project is for educational purposes only. Ensure you comply with Alibaba's API usage terms and conditions.
 
 <!-- eraser-additional-content -->
-## Diagrams
+## 📊 Diagrams
 <!-- eraser-additional-files -->
 <a href="/README-Alibaba Open API Integration-2.eraserdiagram" data-element-id="0BmuCW_bBbA32G5-fmgNS"><img src="/.eraser/LQCcXFqJOypzDrun3YnZ___3Jivg2tjMecMlrHwbIVIBR8f7U03___---diagram----6c7c2e2c9f3e61576818dea1e6cfcf11-Alibaba-Open-API-Integration.png" alt="" data-element-id="0BmuCW_bBbA32G5-fmgNS" /></a>
 <a href="/README-Alibaba Open API Integration Flowchart-1.eraserdiagram" data-element-id="a-k_kSQRKOeKbttWx1Tsn"><img src="/.eraser/LQCcXFqJOypzDrun3YnZ___3Jivg2tjMecMlrHwbIVIBR8f7U03___---diagram----6084e38ea7f655c95af1aa969aad35f4-Alibaba-Open-API-Integration-Flowchart.png" alt="" data-element-id="a-k_kSQRKOeKbttWx1Tsn" /></a>
