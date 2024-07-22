@@ -86,8 +86,8 @@ This project is for educational purposes only. Ensure you comply with Alibaba's 
 <!-- eraser-additional-content -->
 ## Diagrams
 <!-- eraser-additional-files -->
-<a href="/README-Alibaba Open API Integration Flowchart-1.eraserdiagram" data-element-id="a-k_kSQRKOeKbttWx1Tsn"><img src="/.eraser/LQCcXFqJOypzDrun3YnZ___3Jivg2tjMecMlrHwbIVIBR8f7U03___---diagram----6084e38ea7f655c95af1aa969aad35f4-Alibaba-Open-API-Integration-Flowchart.png" alt="" data-element-id="a-k_kSQRKOeKbttWx1Tsn" /></a>
 <a href="/README-Alibaba Open API Integration-2.eraserdiagram" data-element-id="0BmuCW_bBbA32G5-fmgNS"><img src="/.eraser/LQCcXFqJOypzDrun3YnZ___3Jivg2tjMecMlrHwbIVIBR8f7U03___---diagram----6c7c2e2c9f3e61576818dea1e6cfcf11-Alibaba-Open-API-Integration.png" alt="" data-element-id="0BmuCW_bBbA32G5-fmgNS" /></a>
+<a href="/README-Alibaba Open API Integration Flowchart-1.eraserdiagram" data-element-id="a-k_kSQRKOeKbttWx1Tsn"><img src="/.eraser/LQCcXFqJOypzDrun3YnZ___3Jivg2tjMecMlrHwbIVIBR8f7U03___---diagram----6084e38ea7f655c95af1aa969aad35f4-Alibaba-Open-API-Integration-Flowchart.png" alt="" data-element-id="a-k_kSQRKOeKbttWx1Tsn" /></a>
 <!-- end-eraser-additional-files -->
 <!-- end-eraser-additional-content -->
 <!--- Eraser file: https://app.eraser.io/workspace/LQCcXFqJOypzDrun3YnZ --->
