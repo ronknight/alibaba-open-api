@@ -1,0 +1,30 @@
+flowchart-diagram
+
+title Alibaba Open API Integration Flowchart
+
+// Grouping the requirements and setup steps
+Setup [color: lightblue] {
+  Clone Repository [icon: git-branch]
+  Install Packages [icon: package]
+  Setup .env File [icon: file-text]
+}
+
+// Grouping the script execution steps
+Scripts [color: lightgreen] {
+  Initiate OAuth [label: 1initiate.py, icon: key]
+  Create Tokens [label: 2createtoken.py, icon: lock]
+  Refresh Token [label: 3refreshtoken.py, icon: refresh-cw]
+  Retrieve Product List [label: productlist.py, icon: list]
+}
+
+// Defining the flow
+Start [shape: oval, icon: play] > Clone Repository: Clone the repository
+Clone Repository > Install Packages: Install required packages
+Install Packages > Setup .env File: Setup .env file with credentials
+Setup .env File > Initiate OAuth: Run 1initiate.py
+Initiate OAuth > Create Tokens: Run 2createtoken.py
+Create Tokens > Refresh Token: Run 3refreshtoken.py
+Refresh Token > Retrieve Product List: Run productlist.py
+Retrieve Product List > End [shape: oval, icon: stop-circle]: Process complete
+
+

@@ -1,0 +1,26 @@
+cloud-architecture-diagram
+
+// Title
+title Alibaba Open API Integration
+
+// Nodes and Groups
+User [icon: user]
+
+Authentication Service [color: blue, icon: lock] {
+  OAuth Service [icon: lock]
+  Token Management Service [icon: key]
+}
+
+Product Service [color: green, icon: shopping-cart] {
+  Product Listing Service [icon: list]
+}
+
+Alibaba Open API [icon: globe]
+
+// Connections
+User > OAuth Service
+OAuth Service > Token Management Service
+Token Management Service > Alibaba Open API
+User > Product Listing Service
+Product Listing Service > Alibaba Open API
+
