@@ -1,6 +1,6 @@
 <p><a target="_blank" href="https://app.eraser.io/workspace/LQCcXFqJOypzDrun3YnZ" id="edit-in-eraser-github-link"><img alt="Edit in Eraser" src="https://firebasestorage.googleapis.com/v0/b/second-petal-295822.appspot.com/o/images%2Fgithub%2FOpen%20in%20Eraser.svg?alt=media&amp;token=968381c8-a7e7-472a-8ed6-4a6626da5501"></a></p>
 
-<h1 align="center"><a href="https://github.com/ronknight/alibaba-open-api">Alibaba Open API Integration</a></h1>
+<h1 align="center"><a href="https://github.com/ronknight/alibaba-open-api">🌐 Alibaba Open API Integration</a></h1>
 <h4 align="center">A Python-based integration for the Alibaba Open API, providing authentication, token management, and product listing functionalities.
 </h4>
 <p align="center">
