@@ -4,3 +4,4 @@
 *.json
 .env MP
 *.txt
+.env copy 2
