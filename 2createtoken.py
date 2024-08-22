@@ -57,9 +57,15 @@ formatted_output += f"))={signature}"
 print("Formatted Output:")
 print(formatted_output)
 
+# Add a custom header to mimic the Protocol.GOP behavior
+headers = {
+    'X-Protocol': 'GOP',  # Custom header to indicate the protocol
+    'Content-Type': 'application/x-www-form-urlencoded'  # Adjust as per API requirements
+}
+
 try:
-    # Make the POST request
-    response = requests.post(f"{ALIBABA_SERVER_CALL_ENTRY}{API_OPERATION}", data=params)
+    # Make the POST request with the custom headers
+    response = requests.post(f"{ALIBABA_SERVER_CALL_ENTRY}{API_OPERATION}", headers=headers, data=params)
     
     # Handle the response
     if response.status_code == 200:

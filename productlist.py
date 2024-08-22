@@ -32,10 +32,10 @@ def main():
     APP_SECRET = os.getenv('APP_SECRET')
     ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
     ALIBABA_SERVER_CALL_ENTRY = "https://openapi-api.alibaba.com/rest"
-    API_OPERATION = "/alibaba/icbu/product/list"  # Alibaba API operation endpoint
+    API_OPERATION = "/alibaba/icbu/product/list"  # API operation endpoint for GOP protocol
 
     # Prepare the request parameters
-    timestamp = str(int(time.time() * 1000))  # Replace with your actual timestamp logic if needed
+    timestamp = str(int(time.time() * 1000))  # Current timestamp in milliseconds
     params = {
         "app_key": APP_KEY,
         "format": "json",
@@ -51,6 +51,12 @@ def main():
     # Add the generated signature to the params dictionary
     params['sign'] = signature
 
+    # Define the headers
+    headers = {
+        'X-Protocol': 'GOP',  # Use Protocol.GOP
+        'Content-Type': 'application/x-www-form-urlencoded'
+    }
+
     # Prepare logging
     log_dir = 'api_logs'
     os.makedirs(log_dir, exist_ok=True)
@@ -60,8 +66,9 @@ def main():
     # Prepare request log (excluding sensitive info)
     request_log = {
         "Request Time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "Request URL": f"{ALIBABA_SERVER_CALL_ENTRY}{API_OPERATION}",
+        "Request URL": f"{ALIBABA_SERVER_CALL_ENTRY}",
         "Request Method": "POST",
+        "Request Headers": headers,
         "Request Parameters": {
             "format": params.get("format"),
             "method": params.get("method"),
@@ -72,7 +79,7 @@ def main():
 
     try:
         # Make the POST request
-        response = requests.post(f"{ALIBABA_SERVER_CALL_ENTRY}{API_OPERATION}", data=params)
+        response = requests.post(f"{ALIBABA_SERVER_CALL_ENTRY}{API_OPERATION}", data=params, headers=headers)
         
         # Handle the response
         response_data = response.json()
@@ -102,4 +109,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
