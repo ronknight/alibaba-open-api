@@ -6,11 +6,11 @@ import time
 from dotenv import load_dotenv
 import json
 from datetime import datetime
+from typing import Optional
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Function to generate the signature with SHA-256
 def generate_signature(params, secret_key, api_operation):
     # Step 1: Sort all request parameters
     sorted_params = sorted(params.items())
@@ -25,17 +25,30 @@ def generate_signature(params, secret_key, api_operation):
 
     return hashed
 
-# Example usage of the signature generation function
-def main():
+def get_category_mapping(
+    convert_type: Optional[int] = None,
+    cat_id: Optional[int] = None,
+    attribute_id: Optional[int] = None,
+    attribute_value_id: Optional[int] = None
+):
+    """
+    Get category ID mapping based on provided parameters.
+    
+    Args:
+        convert_type (int, optional): 1-category, 2-attribute, 3-value
+        cat_id (int, optional): Category ID
+        attribute_id (int, optional): Attribute ID
+        attribute_value_id (int, optional): Attribute value ID
+    """
     # Retrieve parameters from environment
     APP_KEY = os.getenv('APP_KEY')
     APP_SECRET = os.getenv('APP_SECRET')
     ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
     ALIBABA_SERVER_CALL_ENTRY = "https://openapi-api.alibaba.com/rest"
-    API_OPERATION = "/alibaba/icbu/product/list"  # API operation endpoint for GOP protocol
+    API_OPERATION = "/alibaba/icbu/category/id/mapping"
 
     # Prepare the request parameters
-    timestamp = str(int(time.time() * 1000))  # Current timestamp in milliseconds
+    timestamp = str(int(time.time() * 1000))
     params = {
         "app_key": APP_KEY,
         "format": "json",
@@ -43,20 +56,25 @@ def main():
         "access_token": ACCESS_TOKEN,
         "sign_method": "sha256",
         "timestamp": timestamp,
-        "page_size": "20",  # Number of items per page
-        "current_page": "1",  # Page number
-        "filter_type": "onSelling"  # Status of products to retrieve
     }
+
+    # Add optional parameters if they are provided
+    if convert_type is not None:
+        params["convert_type"] = str(convert_type)
+    if cat_id is not None:
+        params["cat_id"] = str(cat_id)
+    if attribute_id is not None:
+        params["attribute_id"] = str(attribute_id)
+    if attribute_value_id is not None:
+        params["attribute_value_id"] = str(attribute_value_id)
 
     # Generate the signature
     signature = generate_signature(params, APP_SECRET, API_OPERATION)
-
-    # Add the generated signature to the params dictionary
     params['sign'] = signature
 
     # Define the headers
     headers = {
-        'X-Protocol': 'GOP',  # Use Protocol.GOP
+        'X-Protocol': 'GOP',
         'Content-Type': 'application/x-www-form-urlencoded'
     }
 
@@ -72,15 +90,7 @@ def main():
         "Request URL": f"{ALIBABA_SERVER_CALL_ENTRY}",
         "Request Method": "POST",
         "Request Headers": headers,
-        "Request Parameters": {
-            "format": params.get("format"),
-            "method": params.get("method"),
-            "timestamp": params.get("timestamp"),
-            "sign_method": params.get("sign_method"),
-            "page_size": params.get("page_size"),
-            "current_page": params.get("current_page"),
-            "filter_type": params.get("filter_type")
-        }
+        "Request Parameters": {k: v for k, v in params.items() if k not in ['app_key', 'access_token', 'sign']}
     }
 
     try:
@@ -97,22 +107,38 @@ def main():
             "Response Headers": {
                 key: value for key, value in response.headers.items() if key.lower() not in ['authorization', 'set-cookie']
             },
-            "Response Body": response_data  # Include the full response body
+            "Response Body": response_data
         }
 
         # Write logs to file
         with open(log_file_path, 'w') as log_file:
             log_data = {
-                "Source": "productlist.py",
+                "Source": "category_id_mapping.py",
                 "Request Log": request_log,
                 "Response Log": response_log
             }
             json.dump(log_data, log_file, indent=4)
         
         print(f"\nRequest and Response logged to {log_file_path}")
+        return response_data
 
     except requests.exceptions.RequestException as e:
         print(f"\nRequest error: {e}")
+        return None
+
+def main():
+    # Example usage
+    response = get_category_mapping(
+        convert_type=1,  # 1 for category mapping
+        cat_id=123456    # Replace with actual category ID
+    )
+    
+    if response and response.get("result", {}).get("success"):
+        print("Mapping successful!")
+        print(json.dumps(response, indent=2))
+    else:
+        print("Mapping failed!")
+        print(json.dumps(response, indent=2))
 
 if __name__ == "__main__":
     main()

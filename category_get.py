@@ -25,14 +25,13 @@ def generate_signature(params, secret_key, api_operation):
 
     return hashed
 
-# Example usage of the signature generation function
 def main():
     # Retrieve parameters from environment
     APP_KEY = os.getenv('APP_KEY')
     APP_SECRET = os.getenv('APP_SECRET')
     ACCESS_TOKEN = os.getenv('ACCESS_TOKEN')
     ALIBABA_SERVER_CALL_ENTRY = "https://openapi-api.alibaba.com/rest"
-    API_OPERATION = "/alibaba/icbu/product/list"  # API operation endpoint for GOP protocol
+    API_OPERATION = "/icbu/product/category/get"  # Updated to correct path format
 
     # Prepare the request parameters
     timestamp = str(int(time.time() * 1000))  # Current timestamp in milliseconds
@@ -43,9 +42,7 @@ def main():
         "access_token": ACCESS_TOKEN,
         "sign_method": "sha256",
         "timestamp": timestamp,
-        "page_size": "20",  # Number of items per page
-        "current_page": "1",  # Page number
-        "filter_type": "onSelling"  # Status of products to retrieve
+        "cat_id": "202012003"  # Specific category ID for Kids Bag Sets
     }
 
     # Generate the signature
@@ -77,14 +74,12 @@ def main():
             "method": params.get("method"),
             "timestamp": params.get("timestamp"),
             "sign_method": params.get("sign_method"),
-            "page_size": params.get("page_size"),
-            "current_page": params.get("current_page"),
-            "filter_type": params.get("filter_type")
+            "cat_id": params.get("cat_id")
         }
     }
 
     try:
-        # Make the POST request
+        # Make the POST request - updated to append API operation to base URL
         response = requests.post(f"{ALIBABA_SERVER_CALL_ENTRY}{API_OPERATION}", data=params, headers=headers)
         
         # Handle the response
@@ -103,7 +98,7 @@ def main():
         # Write logs to file
         with open(log_file_path, 'w') as log_file:
             log_data = {
-                "Source": "productlist.py",
+                "Source": "category_get.py",
                 "Request Log": request_log,
                 "Response Log": response_log
             }
