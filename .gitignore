@@ -5,3 +5,5 @@
 .env MP
 *.txt
 .env copy 2
+.venv/*
+venv/

@@ -43,6 +43,9 @@ def main():
         "access_token": ACCESS_TOKEN,
         "sign_method": "sha256",
         "timestamp": timestamp,
+        "page_size": "20",  # Number of items per page
+        "current_page": "1",  # Page number
+        "filter_type": "onSelling"  # Status of products to retrieve
     }
 
     # Generate the signature
@@ -74,6 +77,9 @@ def main():
             "method": params.get("method"),
             "timestamp": params.get("timestamp"),
             "sign_method": params.get("sign_method"),
+            "page_size": params.get("page_size"),
+            "current_page": params.get("current_page"),
+            "filter_type": params.get("filter_type")
         }
     }
 
