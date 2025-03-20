@@ -6,6 +6,7 @@ import time
 from dotenv import load_dotenv
 import json
 from datetime import datetime
+import argparse  # Add this import
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,6 +27,11 @@ def generate_signature(params, secret_key, api_operation):
     return hashed
 
 def main():
+    # Set up argument parser
+    parser = argparse.ArgumentParser(description='Get product category information from Alibaba API')
+    parser.add_argument('category_id', help='The category ID to query')
+    args = parser.parse_args()
+
     # Retrieve parameters from environment
     APP_KEY = os.getenv('APP_KEY')
     APP_SECRET = os.getenv('APP_SECRET')
@@ -42,7 +48,7 @@ def main():
         "access_token": ACCESS_TOKEN,
         "sign_method": "sha256",
         "timestamp": timestamp,
-        "cat_id": "202012003"  # Specific category ID for Kids Bag Sets
+        "cat_id": args.category_id  # Use the command-line argument here
     }
 
     # Generate the signature
