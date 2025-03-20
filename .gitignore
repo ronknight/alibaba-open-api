@@ -7,3 +7,4 @@
 .env copy 2
 .venv/*
 venv/
+api_logs/
