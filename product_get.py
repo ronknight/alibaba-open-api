@@ -20,7 +20,7 @@ def generate_signature(params, secret_key, api_operation):
     hashed = hmac.new(secret_key.encode('utf-8'), concatenated_string.encode('utf-8'), hashlib.sha256).hexdigest().upper()
     return hashed
 
-def fetch_product_details(product_id, app_key, app_secret, access_token):
+def fetch_product_details(product_id, app_key, app_secret, access_token, website=None):
     ALIBABA_SERVER_CALL_ENTRY = "https://openapi-api.alibaba.com/rest"
     API_OPERATION = "/icbu/product/get"
 
@@ -34,6 +34,10 @@ def fetch_product_details(product_id, app_key, app_secret, access_token):
     product_get_request = {
         "productId": int(product_id)
     }
+    
+    # Add website if specified
+    if website:
+        product_get_request["webSite"] = website
 
     # Prepare the base request parameters
     params = {
@@ -42,7 +46,7 @@ def fetch_product_details(product_id, app_key, app_secret, access_token):
         "sign_method": "sha256",
         "timestamp": str(int(time.time() * 1000)),
         "format": "json",
-        "method": "/icbu/product/get",
+        "method": API_OPERATION,  # Use consistent API operation path
         "product_get_request": json.dumps(product_get_request)
     }
 
@@ -51,20 +55,15 @@ def fetch_product_details(product_id, app_key, app_secret, access_token):
     params['sign'] = signature
 
     try:
-        url = f"{ALIBABA_SERVER_CALL_ENTRY}"
+        url = ALIBABA_SERVER_CALL_ENTRY
         print_info(f"Making API request to: {url}")
         print_info(f"With product ID: {product_id}")
+        if website:
+            print_info(f"Website: {website}")
         
         response = requests.post(url, data=params, headers=headers)
         print_info(f"Response status code: {response.status_code}")
-        print_info(f"Response headers: {response.headers}")
         
-        try:
-            response_text = response.text
-            print_info(f"Raw response: {response_text[:500]}...")  # Print first 500 chars of response
-        except Exception as e:
-            print_error(f"Could not read response text: {e}")
-            
         response_data = response.json()
         if response.status_code != 200:
             print_error(f"API Error: Status code {response.status_code}")
@@ -78,6 +77,24 @@ def fetch_product_details(product_id, app_key, app_secret, access_token):
             if error_code:
                 print_error(f"Error Code: {error_code}")
             return None
+
+        # Extract product details from response
+        if 'product' in response_data:
+            product = response_data['product']
+            if product:
+                print_success("\nProduct Details:")
+                print_info(f"Product ID: {product.get('productId')}")
+                print_info(f"Subject: {product.get('subject')}")
+                print_info(f"Status: {product.get('status')}")
+                print_info(f"Category ID: {product.get('categoryId')}")
+                
+                # Handle product attributes
+                if 'attributes' in product:
+                    print_info("\nProduct Attributes:")
+                    for attr in product['attributes']:
+                        attr_name = attr.get('attributeName', '')
+                        attr_value = attr.get('valueName', '')
+                        print_info(f"{attr_name}: {attr_value}")
             
         return response_data
         
@@ -122,6 +139,7 @@ def save_response_to_json(response_data, product_id):
 def main():
     parser = argparse.ArgumentParser(description='Fetch product details by ID from Alibaba API')
     parser.add_argument('--product_id', type=str, required=True, help='Product ID to fetch details for')
+    parser.add_argument('--website', type=str, choices=['ICBU', 'ALIEXPRESS'], help='Website to fetch product from (ICBU or ALIEXPRESS)')
     args = parser.parse_args()
 
     # Retrieve and validate environment variables
@@ -136,9 +154,11 @@ def main():
 
     print_header("\n=== Fetching Product Details ===")
     print_info(f"Product ID: {args.product_id}")
+    if args.website:
+        print_info(f"Website: {args.website}")
 
-    # Make the API call
-    response_data = fetch_product_details(args.product_id, APP_KEY, APP_SECRET, ACCESS_TOKEN)
+    # Make the API call with optional website parameter
+    response_data = fetch_product_details(args.product_id, APP_KEY, APP_SECRET, ACCESS_TOKEN, args.website)
 
     if response_data:
         print_success("Successfully retrieved product details")
