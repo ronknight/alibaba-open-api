@@ -8,3 +8,4 @@
 .venv/*
 venv/
 api_logs/
+__pycache__/
