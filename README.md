@@ -74,6 +74,8 @@ Required Python packages are listed in `requirements.txt`.
    ```
    Use when access token expires.
 
+For detailed API documentation on token creation and authentication, refer to the [official Alibaba Open API documentation](https://openapi.alibaba.com/doc/api.htm?spm=a2o9m.11193487.0.0.76ce13a0EjmsGR#/api?cid=4&path=/auth/token/create&methodType=GET/POST).
+
 ## 🔌 Available Endpoints
 
 ### 🔑 Authentication Endpoints
@@ -94,7 +96,7 @@ Required Python packages are listed in `requirements.txt`.
 | `product_inventory_get.py` | Get product inventory details | Required: `--product_id`<br>`python product_inventory_get.py --product_id <id>` |
 | `product_inventory_update.py` | Update product inventory | Required: `--product_id`, `--sku_id`, `--quantity`<br>Optional: `--adjust`<br>`python product_inventory_update.py --product_id <id> --sku_id <id> --quantity <N> [--adjust]` |
 | `product_batch_get.py` | Get multiple products | Required: `--csv`<br>`python tools/product_batch_get.py --csv <path>` |
-| `product_update_display.py` | Update product display status | Required: `--product_id`, `--status`<br>`python product_update_display.py --product_id <id> --status <online\|offline>` |
+| `product_update_display.py` | Update product display status | Required: `--product_id`, `--status`<br>`python product_update_display.py --product_id <id> --status <online\|offline>`<br>Parameters:<br>- `new_display`: String (on-upshelf/off-offshelf)<br>- `product_id_list`: Array of product IDs |
 
 ### 📁 Category Endpoints
 | Script | Description | Usage |
