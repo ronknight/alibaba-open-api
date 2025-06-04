@@ -20,56 +20,57 @@ def generate_signature(params, secret_key, api_operation):
     hashed = hmac.new(secret_key.encode('utf-8'), concatenated_string.encode('utf-8'), hashlib.sha256).hexdigest().upper()
     return hashed
 
-def fetch_product_details(product_id, app_key, app_secret, access_token, website=None):
+def post_product_description(product_id, app_key, app_secret, access_token, website=None):
     ALIBABA_SERVER_CALL_ENTRY = "https://openapi-api.alibaba.com/rest"
-    API_OPERATION = "/icbu/product/get"
+    API_OPERATION = "/buyer/item/update"
 
-    # Define the headers
+    # Read the sample description from json file
+    with open('data/sample.json', 'r', encoding='utf-8') as f:
+        sample_data = json.load(f)
+        description = sample_data['response']['product']['description']
+
     headers = {
         'X-Protocol': 'GOP',
         'Content-Type': 'application/x-www-form-urlencoded'
     }
 
-    # Create the product_get_request object
-    product_get_request = {
-        "productId": int(product_id)
+    # Create the item update request object according to the API docs
+    item_update_request = {
+        "itemId": str(product_id),  # API expects string
+        "description": description
     }
     
-    # Add website if specified
     if website:
-        product_get_request["webSite"] = website
-
-    # Prepare the base request parameters
+        item_update_request["webSite"] = website
+        
+    # First create params without signature
     params = {
         "app_key": app_key,
         "access_token": access_token,
         "sign_method": "sha256",
         "timestamp": str(int(time.time() * 1000)),
         "format": "json",
-        "method": API_OPERATION,  # Use consistent API operation path
-        "product_get_request": json.dumps(product_get_request)
+        "method": API_OPERATION,
+        "request": json.dumps(item_update_request)  # Include the request body in params
     }
-
-    # Generate the signature
+    
+    # Then generate and add the signature
     signature = generate_signature(params, app_secret, API_OPERATION)
     params['sign'] = signature
 
     try:
-        url = ALIBABA_SERVER_CALL_ENTRY
-        print_info(f"Making API request to: {url}")
-        print_info(f"With product ID: {product_id}")
-        if website:
-            print_info(f"Website: {website}")
+        print_info(f"Making API request to: {ALIBABA_SERVER_CALL_ENTRY}")
+        print_info(f"Processing product ID: {product_id}")
         
-        response = requests.post(url, data=params, headers=headers)
+        response = requests.post(ALIBABA_SERVER_CALL_ENTRY, data=params, headers=headers)
         print_info(f"Response status code: {response.status_code}")
         
-        response_data = response.json()
         if response.status_code != 200:
             print_error(f"API Error: Status code {response.status_code}")
             print_error(f"Response: {response.text}")
             return None
             
+        response_data = response.json()
         if 'error_message' in response_data or 'message' in response_data:
             error_msg = response_data.get('error_message') or response_data.get('message')
             error_code = response_data.get('error_code') or response_data.get('code')
@@ -78,26 +79,9 @@ def fetch_product_details(product_id, app_key, app_secret, access_token, website
                 print_error(f"Error Code: {error_code}")
             return None
 
-        # Extract product details from response
-        if 'product' in response_data:
-            product = response_data['product']
-            if product:
-                print_success("\nProduct Details:")
-                print_info(f"Product ID: {product.get('productId')}")
-                print_info(f"Subject: {product.get('subject')}")
-                print_info(f"Status: {product.get('status')}")
-                print_info(f"Category ID: {product.get('categoryId')}")
-                
-                # Handle product attributes
-                if 'attributes' in product:
-                    print_info("\nProduct Attributes:")
-                    for attr in product['attributes']:
-                        attr_name = attr.get('attributeName', '')
-                        attr_value = attr.get('valueName', '')
-                        print_info(f"{attr_name}: {attr_value}")
-            
+        print_success("\nProduct description updated successfully")
         return response_data
-        
+
     except requests.exceptions.RequestException as e:
         print_error(f"\nRequest error: {e}")
         return None
@@ -136,11 +120,12 @@ def save_response_to_json(response_data, product_id):
         print_error(f"Error saving response to JSON: {str(e)}")
         return None
 
+
+
 def main():
-    parser = argparse.ArgumentParser(description='Fetch product details by ID from Alibaba API')
-    parser.add_argument('--product_id', type=str, required=True, help='Product ID to fetch details for')
-    parser.add_argument('--website', type=str, choices=['ICBU', 'ALIEXPRESS'], help='Website to fetch product from (ICBU or ALIEXPRESS)')
-    parser.add_argument('--save-json', action='store_true', help='Save response to JSON file')
+    parser = argparse.ArgumentParser(description='Post product description from sample.json')
+    parser.add_argument('--product_id', type=str, required=True, help='Product ID to process')
+    parser.add_argument('--website', type=str, choices=['ICBU', 'ALIEXPRESS'], help='Website to process product on (ICBU or ALIEXPRESS)')
     args = parser.parse_args()
 
     # Retrieve and validate environment variables
@@ -153,30 +138,30 @@ def main():
         print_info("Required variables: APP_KEY, APP_SECRET, ACCESS_TOKEN")
         return
 
-    print_header("\n=== Fetching Product Details ===")
+    print_header("\n=== Processing Product Description ===")
     print_info(f"Product ID: {args.product_id}")
     if args.website:
         print_info(f"Website: {args.website}")
 
-    # Make the API call with optional website parameter
-    response_data = fetch_product_details(args.product_id, APP_KEY, APP_SECRET, ACCESS_TOKEN, args.website)
-
-    if response_data:
-        print_success("Successfully retrieved product details")
+    try:
+        response_data = post_product_description(args.product_id, APP_KEY, APP_SECRET, ACCESS_TOKEN, args.website)
         
-        # Save the response to JSON file only if requested
-        if args.save_json:
+        if response_data:
+            # Save the response to JSON file
             output_file = save_response_to_json(response_data, args.product_id)
+            
             if output_file:
                 print_success(f"Response data has been saved to {output_file}")
             else:
                 print_error("Failed to save response data")
-        
-        # Print the response data
-        print(json.dumps(response_data))
-    else:
-        print_error("Failed to fetch product details")
-        print_info("Please check the product ID and try again")
+        else:
+            print_error("Failed to process product")
+            print_info("Please check the product ID and try again")
+            
+    except FileNotFoundError:
+        print_error("\nSample file not found: data/sample.json")
+    except Exception as e:
+        print_error(f"\nError processing request: {str(e)}")
 
 if __name__ == "__main__":
     main()

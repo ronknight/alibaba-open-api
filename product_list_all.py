@@ -136,8 +136,8 @@ def main():
         
         # Only sleep after page 3
         if current_page > 3:
-            print_info("Waiting 15 seconds before next request...")
-            time.sleep(15)
+            print_info("Waiting 5 seconds before next request...")
+            time.sleep(5)
 
         # Save to a JSON file
         output_file = os.path.join(log_dir, f"all_products_{timestamp_str}.json")
