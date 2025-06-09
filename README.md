@@ -96,7 +96,7 @@ For detailed API documentation on token creation and authentication, refer to th
 | `product_inventory_get.py` | Get product inventory details | Required: `--product_id`<br>`python product_inventory_get.py --product_id <id>` |
 | `product_inventory_update.py` | Update product inventory | Required: `--product_id`, `--sku_id`, `--quantity`<br>Optional: `--adjust`<br>`python product_inventory_update.py --product_id <id> --sku_id <id> --quantity <N> [--adjust]` |
 | `product_batch_get.py` | Get multiple products | Required: `--csv`<br>`python tools/product_batch_get.py --csv <path>` |
-| `product_update_display.py` | Update product display status | Required: `--product_id`, `--status`<br>`python product_update_display.py --product_id <id> --status <online\|offline>`<br>Parameters:<br>- `new_display`: String (on-upshelf/off-offshelf)<br>- `product_id_list`: Array of product IDs |
+| `product_update_display.py` | Update product display status | Required: `--product_id`, `--status`<br>`python product_update_display.py --product_id <id> --status <online\|offline>` |
 
 ### 📁 Category Endpoints
 | Script | Description | Usage |

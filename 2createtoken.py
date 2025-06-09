@@ -3,6 +3,8 @@ import requests
 import hashlib
 import hmac
 import time
+import subprocess
+import sys
 from urllib.parse import urlencode
 from dotenv import load_dotenv, set_key
 import json
@@ -104,6 +106,21 @@ try:
         with open(log_file_path, 'w') as log_file:
             json.dump(response_data, log_file, indent=4)
         print(f"\nResponse logged to {log_file_path}")
+        
+        # Automatically run 3refreshtoken.py after successful token creation
+        print("\nAutomatically running 3refreshtoken.py...")
+        try:
+            result = subprocess.run([sys.executable, "3refreshtoken.py"], 
+                                  capture_output=True, text=True, check=True)
+            print("✓ 3refreshtoken.py executed successfully!")
+            print("Output:", result.stdout)
+            if result.stderr:
+                print("Warnings/Errors:", result.stderr)
+        except subprocess.CalledProcessError as e:
+            print(f"✗ Error running 3refreshtoken.py: {e}")
+            print("Error output:", e.stderr)
+        except FileNotFoundError:
+            print("✗ Could not find 3refreshtoken.py in the current directory")
     else:
         print(f"\nRequest failed with status code {response.status_code}")
         print("Response:", response.text)

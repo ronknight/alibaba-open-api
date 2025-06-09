@@ -9,3 +9,4 @@
 venv/
 api_logs/
 __pycache__/
+api_logs2/*.csv

@@ -1,4 +1,6 @@
 import os
+import subprocess
+import sys
 from dotenv import load_dotenv
 from urllib.parse import urlparse, parse_qs
 
@@ -65,3 +67,20 @@ with open(env_path, 'w') as env_file:
         env_file.write(f'{key}={value}\n')
 
 print("Authorization code has been updated in the .env file.")
+
+# Automatically run 2createtoken.py after successful authorization
+print("\nAutomatically running 2createtoken.py...")
+try:
+    result = subprocess.run([sys.executable, "2createtoken.py"], 
+                          capture_output=True, text=True, check=True)
+    print("✓ 2createtoken.py executed successfully!")
+    print("Output:", result.stdout)
+    if result.stderr:
+        print("Warnings/Errors:", result.stderr)
+except subprocess.CalledProcessError as e:
+    print(f"✗ Error running 2createtoken.py: {e}")
+    print("Error output:", e.stderr)
+    sys.exit(1)
+except FileNotFoundError:
+    print("✗ Could not find 2createtoken.py in the current directory")
+    sys.exit(1)
