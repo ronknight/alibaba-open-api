@@ -52,7 +52,7 @@ if os.path.exists(env_path):
     with open(env_path, 'r') as env_file:
         for line in env_file:
             line = line.strip()
-            if line and not line.startswith('#'):
+            if line and not line.startswith('#') and '=' in line:
                 key, value = line.split('=', 1)
                 env_vars[key] = value
 
