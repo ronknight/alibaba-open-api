@@ -1,2 +1,8 @@
+# Environment and Configuration
 python-dotenv==1.0.0
+
+# HTTP Client
 requests==2.31.0
+
+# Terminal UI (Cross-platform - supports Python 3.13)
+blessed==1.20.0

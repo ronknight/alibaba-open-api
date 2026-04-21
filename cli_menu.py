@@ -3,7 +3,6 @@ import os
 import sys
 import time
 import json
-import curses
 import hmac
 import hashlib
 import requests
@@ -32,7 +31,6 @@ class Menu:
         self.items: List[MenuItem] = []
         self.selected_index = 0
         self.running = True
-        self.has_colors = False
         
     def add_item(self, name: str, description: str, action: Callable):
         """Add a menu item to the menu.
@@ -40,401 +38,208 @@ class Menu:
         Args:
             name: The name of the menu item to display
             description: A short description of what the menu item does
-            action: A callable that takes a curses window as argument and performs the menu action
+            action: A callable that performs the menu action
         """
         self.items.append(MenuItem(name, description, action))
-        
-    def init_colors(self):
-        try:
-            if curses.has_colors():
-                curses.start_color()
-                curses.use_default_colors()
-                curses.init_pair(1, curses.COLOR_CYAN, -1)
-                curses.init_pair(2, curses.COLOR_YELLOW, -1)
-                curses.init_pair(3, curses.COLOR_GREEN, -1)
-                curses.init_pair(4, curses.COLOR_BLUE, -1)
-                self.has_colors = True
-        except:
-            self.has_colors = False
 
-    def draw_menu(self, stdscr):
-        stdscr.clear()
-        height, width = stdscr.getmaxyx()
-        
-        # Draw title
-        title = f"=== {self.title} ==="
-        try:
-            stdscr.addstr(0, (width - len(title)) // 2, title, curses.A_BOLD)
-        except:
-            try:
-                stdscr.addstr(0, (width - len(title)) // 2, title)
-            except:
-                pass
-        
-        # Draw items
-        for idx, item in enumerate(self.items):
-            y = idx + 3
-            if y >= height:
-                break
+    def display_menu(self):
+        """Display the menu and get user input."""
+        while self.running:
+            os.system('cls' if os.name == 'nt' else 'clear')
+            
+            # Display title
+            print("\n" + "="*80)
+            print(f"  {self.title}".center(80))
+            print("="*80 + "\n")
+            
+            # Display menu items
+            for idx, item in enumerate(self.items, 1):
+                prefix = ">>> " if idx - 1 == self.selected_index else "    "
+                print(f"{prefix}{idx}. {item.name:<20} - {item.description}")
+            
+            print("\n" + "-"*80)
+            print("Enter number to select, 'Q' to quit:")
             
             try:
-                # Highlight selected item
-                menu_str = f"{idx + 1}. {item.name}"
-                if idx == self.selected_index:
-                    attr = curses.A_REVERSE
-                else:
-                    attr = curses.A_NORMAL
-                    
-                stdscr.addstr(y, 2, menu_str, attr)
+                user_input = input("\n> ").strip().upper()
                 
-                # Draw description if there's room
-                if len(item.description) + len(menu_str) + 4 < width:
-                    desc_attr = curses.color_pair(4) if self.has_colors else curses.A_NORMAL
-                    stdscr.addstr(y, len(menu_str) + 4, f"- {item.description}", desc_attr)
-            except:
-                continue
-        
-        # Draw footer
-        try:
-            footer = "Use ↑/↓ arrows to navigate, Enter to select, Q to quit"
-            if height > 5:
-                footer_attr = curses.color_pair(2) if self.has_colors else curses.A_NORMAL
-                stdscr.addstr(height-2, (width - len(footer)) // 2, footer, footer_attr)
-        except:
-            pass
-        
-        stdscr.refresh()
-
-    def handle_input(self, key):
-        if key == curses.KEY_UP and self.selected_index > 0:
-            self.selected_index -= 1
-        elif key == curses.KEY_DOWN and self.selected_index < len(self.items) - 1:
-            self.selected_index += 1
-        elif key in [curses.KEY_ENTER, ord('\n'), ord('\r')]:
-            self.items[self.selected_index].action(self.stdscr)
-        elif key in [ord('q'), ord('Q')]:
-            self.running = False
-        elif key in range(ord('1'), ord('9')):
-            idx = key - ord('1')
-            if idx < len(self.items):
-                self.selected_index = idx
-                self.items[idx].action(self.stdscr)
-
-    def run(self, stdscr):
-        self.stdscr = stdscr  # Store stdscr for use in actions
-        # Setup
-        curses.curs_set(0)  # Hide cursor
-        self.init_colors()  # Initialize colors
-        
-        while self.running:
-            try:
-                self.draw_menu(stdscr)
-                key = stdscr.getch()
-                self.handle_input(key)
-            except:
-                # If there's an error in the menu loop, wait a bit and try again
-                time.sleep(0.1)
-
-def display_text_screen(stdscr, title, content_lines):
-    # Clear screen and get dimensions
-    stdscr.clear()
-    height, width = stdscr.getmaxyx()
-    has_colors = False
-    
-    try:
-        # Initialize color pairs if supported
-        if curses.has_colors():
-            curses.start_color()
-            curses.use_default_colors()
-            curses.init_pair(1, curses.COLOR_CYAN, -1)
-            curses.init_pair(2, curses.COLOR_YELLOW, -1)
-            curses.init_pair(3, curses.COLOR_GREEN, -1)
-            curses.init_pair(4, curses.COLOR_BLUE, -1)
-            has_colors = True
-    except:
-        pass
-    
-    # Draw title
-    try:
-        title_attr = curses.A_BOLD | (curses.color_pair(1) if has_colors else 0)
-        stdscr.addstr(1, (width - len(title)) // 2, title, title_attr)
-    except:
-        try:
-            stdscr.addstr(1, (width - len(title)) // 2, title)
-        except:
-            pass
-    
-    # Draw content
-    current_y = 3
-    for line in content_lines:
-        if current_y >= height - 2:  # Leave room for footer
-            break
-        
-        try:
-            if isinstance(line, tuple):
-                text, color = line
-                attr = curses.color_pair(color) if has_colors else curses.A_NORMAL
-                stdscr.addstr(current_y, 2, text, attr)
-            else:
-                stdscr.addstr(current_y, 2, line)
-            current_y += 1
-        except:
-            current_y += 1
-            continue
-    
-    # Draw footer
-    try:
-        footer = "Press Enter to continue..."
-        if height > 5:
-            footer_attr = curses.color_pair(2) if has_colors else curses.A_NORMAL
-            stdscr.addstr(height-2, (width - len(footer)) // 2, footer, footer_attr)
-    except:
-        pass
-    
-    stdscr.refresh()
-    
-    # Wait for Enter key
-    while True:
-        try:
-            key = stdscr.getch()
-            if key in [curses.KEY_ENTER, ord('\n'), ord('\r')]:
+                if user_input == 'Q':
+                    self.running = False
+                    break
+                
+                choice = int(user_input) - 1
+                if 0 <= choice < len(self.items):
+                    self.items[choice].action(None)
+                else:
+                    print("Invalid selection. Press Enter to continue...")
+                    input()
+            except ValueError:
+                print("Invalid input. Please enter a number. Press Enter to continue...")
+                input()
+            except KeyboardInterrupt:
+                self.running = False
                 break
-        except:
-            time.sleep(0.1)
+            except Exception as e:
+                print(f"Error: {e}")
+                input("Press Enter to continue...")
 
-def display_splash_screen(stdscr):
-    # Clear screen and get dimensions
-    stdscr.clear()
-    height, width = stdscr.getmaxyx()
-    has_colors = False
+def display_text_screen(dummy, title, content_lines):
+    """Display a text screen (dummy parameter for compatibility)."""
+    os.system('cls' if os.name == 'nt' else 'clear')
     
-    try:
-        # Initialize color pairs if supported
-        if curses.has_colors():
-            curses.start_color()
-            curses.use_default_colors()
-            curses.init_pair(1, curses.COLOR_CYAN, -1)
-            curses.init_pair(2, curses.COLOR_YELLOW, -1)
-            curses.init_pair(3, curses.COLOR_GREEN, -1)
-            curses.init_pair(4, curses.COLOR_BLUE, -1)
-            has_colors = True
-    except:
-        pass
+    print("\n" + "="*80)
+    print(f"  {title}".center(80))
+    print("="*80 + "\n")
     
-    # Box dimensions
-    box_width = 71
-    box_height = 14
-    start_y = (height - box_height) // 2
-    start_x = (width - box_width) // 2
+    for line in content_lines:
+        if isinstance(line, tuple):
+            text = line[0]
+            print(text)
+        else:
+            print(line)
     
-    # Draw box
-    try:
-        for y in range(box_height):
-            for x in range(box_width):
-                attr = curses.color_pair(1) if has_colors else curses.A_NORMAL
-                if y == 0 and x == 0:
-                    stdscr.addch(start_y + y, start_x + x, '╔', attr)
-                elif y == 0 and x == box_width - 1:
-                    stdscr.addch(start_y + y, start_x + x, '╗', attr)
-                elif y == box_height - 1 and x == 0:
-                    stdscr.addch(start_y + y, start_x + x, '╚', attr)
-                elif y == box_height - 1 and x == box_width - 1:
-                    stdscr.addch(start_y + y, start_x + x, '╝', attr)
-                elif y == 0 or y == box_height - 1:
-                    stdscr.addch(start_y + y, start_x + x, '═', attr)
-                elif x == 0 or x == box_width - 1:
-                    stdscr.addch(start_y + y, start_x + x, '║', attr)
-    except:
-        pass
+    print("\n" + "="*80)
+    input("Press Enter to continue...")
+
+def display_splash_screen(dummy):
+    """Display splash screen."""
+    os.system('cls' if os.name == 'nt' else 'clear')
     
-    # Add content
-    messages = [
-        ("Welcome to Alibaba Open API Command Line Interface", curses.A_BOLD, 2),
-        ("Version 1.0.0", curses.color_pair(2) if has_colors else curses.A_NORMAL, 4),
-        ("Thank you for using our API Interface!", curses.color_pair(3) if has_colors else curses.A_NORMAL, 6),
-        ("This tool helps you interact with Alibaba's API endpoints easily", curses.color_pair(4) if has_colors else curses.A_NORMAL, 8),
-        ("and efficiently. Get started by initializing your API connection.", curses.color_pair(4) if has_colors else curses.A_NORMAL, 9),
-        ("For support: https://github.com/ronknight/alibaba-open-api", curses.color_pair(2) if has_colors else curses.A_NORMAL, 11)
-    ]
-    
-    for msg, attr, y_offset in messages:
-        try:
-            x_pos = start_x + (box_width - len(msg)) // 2
-            stdscr.addstr(start_y + y_offset, x_pos, msg, attr)
-        except:
-            continue
-    
-    stdscr.refresh()
+    splash_text = """
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║   Welcome to Alibaba Open API Command Line Interface             ║
+║                          Version 1.0.0                           ║
+║                                                                   ║
+║             Thank you for using our API Interface!               ║
+║                                                                   ║
+║  This tool helps you interact with Alibaba's API endpoints       ║
+║         easily and efficiently. Get started by                   ║
+║     initializing your API connection below.                      ║
+║                                                                   ║
+║  For support: https://github.com/ronknight/alibaba-open-api     ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+    """
+    print(splash_text)
     time.sleep(2)
 
-def display_exit_screen(stdscr):
-    # Clear screen and get dimensions
-    stdscr.clear()
-    height, width = stdscr.getmaxyx()
-    has_colors = False
+def display_exit_screen(dummy):
+    """Display exit screen."""
+    os.system('cls' if os.name == 'nt' else 'clear')
     
-    try:
-        # Initialize color pairs if supported
-        if curses.has_colors():
-            curses.start_color()
-            curses.use_default_colors()
-            curses.init_pair(1, curses.COLOR_CYAN, -1)
-            curses.init_pair(2, curses.COLOR_YELLOW, -1)
-            curses.init_pair(3, curses.COLOR_GREEN, -1)
-            curses.init_pair(4, curses.COLOR_BLUE, -1)
-            has_colors = True
-    except:
-        pass
-    
-    # Box dimensions
-    box_width = 71
-    box_height = 11
-    start_y = (height - box_height) // 2
-    start_x = (width - box_width) // 2
-    
-    # Draw box
-    try:
-        for y in range(box_height):
-            for x in range(box_width):
-                attr = curses.color_pair(1) if has_colors else curses.A_NORMAL
-                if y == 0 and x == 0:
-                    stdscr.addch(start_y + y, start_x + x, '╔', attr)
-                elif y == 0 and x == box_width - 1:
-                    stdscr.addch(start_y + y, start_x + x, '╗', attr)
-                elif y == box_height - 1 and x == 0:
-                    stdscr.addch(start_y + y, start_x + x, '╚', attr)
-                elif y == box_height - 1 and x == box_width - 1:
-                    stdscr.addch(start_y + y, start_x + x, '╝', attr)
-                elif y == 0 or y == box_height - 1:
-                    stdscr.addch(start_y + y, start_x + x, '═', attr)
-                elif x == 0 or x == box_width - 1:
-                    stdscr.addch(start_y + y, start_x + x, '║', attr)
-    except:
-        pass
-    
-    # Add content
-    messages = [
-        ("Thank You for Using Our Application!", curses.A_BOLD, 2),
-        ("Your session has been successfully completed", curses.color_pair(3) if has_colors else curses.A_NORMAL, 4),
-        ("We hope to see you again soon!", curses.color_pair(4) if has_colors else curses.A_NORMAL, 6),
-        ("For updates and support: github.com/ronknight/alibaba-open-api", curses.color_pair(2) if has_colors else curses.A_NORMAL, 8)
-    ]
-    
-    for msg, attr, y_offset in messages:
-        try:
-            x_pos = start_x + (box_width - len(msg)) // 2
-            stdscr.addstr(start_y + y_offset, x_pos, msg, attr)
-        except:
-            continue
-    
-    stdscr.refresh()
+    exit_text = """
+╔═══════════════════════════════════════════════════════════════════╗
+║                                                                   ║
+║             Thank You for Using Our Application!                 ║
+║                                                                   ║
+║      Your session has been successfully completed.               ║
+║                We hope to see you again soon!                     ║
+║                                                                   ║
+║  For updates and support:                                        ║
+║  github.com/ronknight/alibaba-open-api                           ║
+║                                                                   ║
+╚═══════════════════════════════════════════════════════════════════╝
+    """
+    print(exit_text)
     time.sleep(1.5)
 
-def display_category_usage(stdscr):
+def display_category_usage(dummy):
     content = [
         "",
-        ("Available Endpoints:", 1),
+        "Available Endpoints:",
         "",
-        ("1. Get Category Info:", 2),
+        "1. Get Category Info:",
         "   python product_category_get.py <category_id>",
         "",
-        ("2. Get Root Categories:", 2),
+        "2. Get Root Categories:",
         "   python product_category_get_root.py",
         "",
-        ("3. Get Category ID Mapping:", 2),
+        "3. Get Category ID Mapping:",
         "   python product_category_id_mapping.py <category_id>"
     ]
-    display_text_screen(stdscr, "Product Category API Usage", content)
+    display_text_screen(dummy, "Product Category API Usage", content)
 
-def display_inventory_usage(stdscr):
+def display_inventory_usage(dummy):
     content = [
         "",
-        ("Available Endpoints:", 1),
+        "Available Endpoints:",
         "",
-        ("1. Get Inventory:", 2),
+        "1. Get Inventory:",
         "   python product_inventory_get.py --product_id <id>",
         "",
-        ("2. Update Inventory:", 2),
+        "2. Update Inventory:",
         "   python product_inventory_update.py --product_id <id> --inventory <amount>"
     ]
-    display_text_screen(stdscr, "Inventory Management API Usage", content)
+    display_text_screen(dummy, "Inventory Management API Usage", content)
 
-def display_photo_usage(stdscr):
+def display_photo_usage(dummy):
     content = [
         "",
-        ("Available Endpoints:", 1),
+        "Available Endpoints:",
         "",
-        ("1. List Photo Groups:", 2),
+        "1. List Photo Groups:",
         "   python product_photobank_group_list.py",
         "",
-        ("2. Upload Photo:", 2),
+        "2. Upload Photo:",
         "   python product_photobank_upload.py --file <path> [--group_id <id>]",
         "",
-        ("3. List Photos:", 2),
+        "3. List Photos:",
         "   python product_photobank_list.py [--group_id <id>]",
         "",
-        ("4. Manage Photo Groups:", 2),
+        "4. Manage Photo Groups:",
         "   python product_photobank_group_operate.py --action <create|update|delete> --name <group_name>"
     ]
-    display_text_screen(stdscr, "Photo Management API Usage", content)
+    display_text_screen(dummy, "Photo Management API Usage", content)
 
-def display_product_list_usage(stdscr):
+def display_product_list_usage(dummy):
     content = [
         "",
-        ("Basic Product Operations:", 1),
+        "Basic Product Operations:",
         "",
-        ("1. List Products:", 2),
+        "1. List Products:",
         "   python product_list.py [--current_page <num>] [--page_size <num>] [--subject <text>]",
         "",
-        ("2. List All Products:", 2),
+        "2. List All Products:",
         "   python product_list_all.py",
         "",
-        ("3. Get Product Details:", 2),
+        "3. Get Product Details:",
         "   python product_get.py --product_id <id>",
         "",
-        ("Product Schema Operations:", 1),
+        "Product Schema Operations:",
         "",
-        ("1. Get Product Schema:", 2),
+        "1. Get Product Schema:",
         "   python product_schema_get.py --category_id <id>",
-        ("2. Add Product Schema:", 2),
+        "",
+        "2. Add Product Schema:",
         "   python product_schema_add.py --category_id <id> --schema <json_data>",
-        ("3. Update Product Schema:", 2),
+        "",
+        "3. Update Product Schema:",
         "   python product_schema_update.py --product_id <id> --schema <json_data>",
-        ("4. Get Schema Levels:", 2),
+        "",
+        "4. Get Schema Levels:",
         "   python product_schema_level_get.py --category_id <id>",
         "",
-        ("Other Product Operations:", 1),
+        "Other Product Operations:",
         "",
-        ("1. Get Product Score:", 2),
+        "1. Get Product Score:",
         "   python product_score_get.py --product_id <id>",
-        ("2. Update Product Display:", 2),
+        "",
+        "2. Update Product Display:",
         "   python product_update_display.py --product_id <id> --display_status <status>",
-        ("3. Check Product Availability:", 2),
+        "",
+        "3. Check Product Availability:",
         "   python product_available_get.py --product_id <id>"
     ]
-    display_text_screen(stdscr, "Product Management API Usage", content)
+    display_text_screen(dummy, "Product Management API Usage", content)
 
-def initialize_api(stdscr):
+def initialize_api(dummy):
+    """Initialize API connection."""
     import os
     from dotenv import load_dotenv
     from urllib.parse import urlparse, parse_qs
     
-    # Clear screen and setup
-    stdscr.clear()
-    height, width = stdscr.getmaxyx()
-    current_y = 2
-    
-    try:
-        # Initialize color pairs if supported
-        if curses.has_colors():
-            curses.start_color()
-            curses.use_default_colors()
-            curses.init_pair(1, curses.COLOR_CYAN, -1)
-            curses.init_pair(2, curses.COLOR_YELLOW, -1)
-            curses.init_pair(3, curses.COLOR_GREEN, -1)
-            curses.init_pair(4, curses.COLOR_BLUE, -1)
-    except:
-        pass
+    os.system('cls' if os.name == 'nt' else 'clear')
     
     # Load environment variables
     load_dotenv()
@@ -443,61 +248,71 @@ def initialize_api(stdscr):
     
     # Check environment variables
     if not app_key or not redirect_uri:
-        try:
-            stdscr.addstr(current_y, 2, "Error: APP_KEY or REDIRECT_URI missing in .env file", 
-                         curses.color_pair(2) if curses.has_colors() else curses.A_NORMAL)
-            stdscr.refresh()
-            stdscr.getch()
-            return
-        except:
-            return
+        print("\nError: APP_KEY or REDIRECT_URI missing in .env file")
+        print("Please configure your .env file first.")
+        input("Press Enter to continue...")
+        return
     
     # Construct authorization URL (masking app_key in display)
     base_url = 'https://openapi-auth.alibaba.com/oauth'
     auth_url = f"{base_url}/authorize?response_type=code&redirect_uri={redirect_uri}&client_id={app_key}"
     display_url = f"{base_url}/authorize?response_type=code&redirect_uri={redirect_uri}&client_id={mask_sensitive_data(app_key)}"
     
+    print("\nPlease visit the following URL to authorize the application:")
+    print(f"\n{display_url}\n")
+    
+    choice = input("Press 'o' to open in browser, or Enter to continue: ").strip().lower()
+    if choice == 'o':
+        webbrowser.open(auth_url)
+    
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("\nAfter authorization, you will be redirected.")
+    print("The authorization code will be extracted from the redirect URL.")
+    print("\nPaste the complete redirected URL here:")
+    print("(Example: http://localhost:8888/?code=XX...&state=YY...)\n")
+    
+    redirected_url = input("> ").strip()
+    
+    if not redirected_url:
+        print("\nNo URL provided.")
+        input("Press Enter to continue...")
+        return
+    
     try:
-        # Display instructions
-        attr = curses.color_pair(4) if curses.has_colors() else curses.A_NORMAL
-        stdscr.addstr(current_y, 2, "Please visit the following URL to authorize the application:", attr)
-        current_y += 2
+        # Parse the URL to get the authorization code
+        parsed_url = urlparse(redirected_url)
+        query_params = parse_qs(parsed_url.query)
         
-        # Display masked URL
-        url_attr = curses.color_pair(1) if curses.has_colors() else curses.A_NORMAL
-        stdscr.addstr(current_y, 2, display_url, url_attr)
-        current_y += 2
+        if 'code' not in query_params:
+            print("\nError: Authorization code not found in URL.")
+            input("Press Enter to continue...")
+            return
         
-        stdscr.addstr(current_y, 2, "Press 'o' to open in browser, or any other key to continue...", attr)
-        stdscr.refresh()
-    except:
-        pass
-    
-    # Handle user input
-    try:
-        ch = stdscr.getch()
-        if ch == ord('o'):
-            webbrowser.open(auth_url)
-    except:
-        pass
-    
-    # Clear screen for next step
-    stdscr.clear()
-    current_y = 2
-    
-    try:
-        # Get redirected URL from user
-        attr = curses.color_pair(4) if curses.has_colors() else curses.A_NORMAL
-        stdscr.addstr(current_y, 2, "After authorization, paste the redirected URL here:", attr)
-        current_y += 2
-    except:
-        pass
-    
-    # Create a temporary file for URL input
-    redirected_url = ""
-    try:
-        with tempfile.NamedTemporaryFile(mode='w+', delete=False) as temp_file:
-            curses.echo()
+        auth_code = query_params['code'][0]
+        
+        print(f"\nAuthorization code extracted successfully!")
+        print(f"Code: {mask_sensitive_data(auth_code)}")
+        
+        # Now exchange the code for tokens
+        print("\nExchanging authorization code for access token...")
+        
+        # Call 2createtoken.py logic
+        try:
+            import subprocess
+            result = subprocess.run([sys.executable, '2createtoken.py'], 
+                                  capture_output=True, text=True, timeout=30)
+            if result.returncode == 0:
+                print("\nTokens created successfully!")
+            else:
+                print(f"\nError creating tokens: {result.stderr}")
+        except Exception as e:
+            print(f"\nError: {e}")
+        
+        input("\nPress Enter to continue...")
+        
+    except Exception as e:
+        print(f"\nError processing URL: {e}")
+        input("Press Enter to continue...")
             curses.curs_set(1)
             stdscr.addstr(current_y, 2, "> ")
             redirected_url = stdscr.getstr().decode('utf-8')
