@@ -112,15 +112,15 @@ try:
         try:
             result = subprocess.run([sys.executable, "3refreshtoken.py"], 
                                   capture_output=True, text=True, check=True)
-            print("✓ 3refreshtoken.py executed successfully!")
+            print("[SUCCESS] 3refreshtoken.py executed successfully!")
             print("Output:", result.stdout)
             if result.stderr:
                 print("Warnings/Errors:", result.stderr)
         except subprocess.CalledProcessError as e:
-            print(f"✗ Error running 3refreshtoken.py: {e}")
+            print(f"[ERROR] Error running 3refreshtoken.py: {e}")
             print("Error output:", e.stderr)
         except FileNotFoundError:
-            print("✗ Could not find 3refreshtoken.py in the current directory")
+            print("[ERROR] Could not find 3refreshtoken.py in the current directory")
     else:
         print(f"\nRequest failed with status code {response.status_code}")
         print("Response:", response.text)

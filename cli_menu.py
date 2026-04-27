@@ -8,6 +8,7 @@ import hashlib
 import requests
 import tempfile
 import webbrowser
+import curses
 from datetime import datetime, timedelta
 from urllib.parse import urlparse, parse_qs
 from dotenv import load_dotenv, set_key
@@ -313,20 +314,9 @@ def initialize_api(dummy):
     except Exception as e:
         print(f"\nError processing URL: {e}")
         input("Press Enter to continue...")
-            curses.curs_set(1)
-            stdscr.addstr(current_y, 2, "> ")
-            redirected_url = stdscr.getstr().decode('utf-8')
-            temp_file.write(redirected_url)
-    except:
-        pass
-    finally:
-        curses.noecho()
-        curses.curs_set(0)
-    
-    if not redirected_url:
-        return
-    
-    # Parse the URL and extract auth code
+
+def process_redirected_url(redirected_url):
+    """Process the redirected URL to extract authorization code."""
     try:
         parsed_url = urlparse(redirected_url)
         query_params = parse_qs(parsed_url.query)
@@ -356,33 +346,14 @@ def initialize_api(dummy):
         with open(env_path, 'w') as f:
             f.writelines(env_content)
         
-        # Display success message with masked auth code
-        current_y += 2
-        success_attr = curses.color_pair(3) if curses.has_colors() else curses.A_NORMAL
-        info_attr = curses.color_pair(4) if curses.has_colors() else curses.A_NORMAL
-        
-        stdscr.addstr(current_y, 2, "Authorization code received successfully!", success_attr)
-        current_y += 1
+        print("Authorization code received successfully!")
         masked_code = mask_sensitive_data(auth_code)
-        stdscr.addstr(current_y, 2, f"Auth Code: {masked_code}", info_attr)
+        print(f"Auth Code: {masked_code}")
         
     except Exception as e:
-        current_y += 2
-        error_attr = curses.color_pair(2) if curses.has_colors() else curses.A_NORMAL
-        try:
-            stdscr.addstr(current_y, 2, f"Error: {str(e)}", error_attr)
-        except:
-            pass
+        print(f"Error: {str(e)}")
     
-    # Final prompt
-    try:
-        current_y += 2
-        prompt_attr = curses.color_pair(4) if curses.has_colors() else curses.A_NORMAL
-        stdscr.addstr(current_y, 2, "Press any key to continue...", prompt_attr)
-        stdscr.refresh()
-        stdscr.getch()
-    except:
-        pass
+    input("Press Enter to continue...")
 
 def create_token(stdscr):
     # Clear screen and setup
@@ -759,7 +730,7 @@ def main():
         ]))
 
         # Run the menu
-        main_menu.run(stdscr)
+        main_menu.display_menu()
 
         # Display exit screen
         display_exit_screen(stdscr)

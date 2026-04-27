@@ -22,17 +22,17 @@ def run_script(script_name, description):
     try:
         result = subprocess.run([sys.executable, script_name], 
                               capture_output=True, text=True, check=True)
-        print(f"✓ {script_name} executed successfully!")
+        print(f"[SUCCESS] {script_name} executed successfully!")
         print(result.stdout)
         if result.stderr:
             print("Warnings:", result.stderr)
         return True
     except subprocess.CalledProcessError as e:
-        print(f"✗ Error running {script_name}: {e}")
+        print(f"[ERROR] Error running {script_name}: {e}")
         print("Error output:", e.stderr)
         return False
     except FileNotFoundError:
-        print(f"✗ Could not find {script_name} in the current directory")
+        print(f"[ERROR] Could not find {script_name} in the current directory")
         return False
 
 def main():

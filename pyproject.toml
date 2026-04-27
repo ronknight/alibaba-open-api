@@ -3,4 +3,8 @@ name = "alibaba-open-api"
 version = "0.1.0"
 description = "Add your description here"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "python-dotenv==1.0.0",
+    "requests==2.31.0",
+    "blessed==1.20.0",
+]
